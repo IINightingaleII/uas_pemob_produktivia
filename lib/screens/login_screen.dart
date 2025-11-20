@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/dummy_auth_service.dart';
 import '../utils/page_routes.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
@@ -15,7 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
+  final _authService = DummyAuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _emailError;

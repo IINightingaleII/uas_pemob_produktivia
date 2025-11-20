@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/dummy_auth_service.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -59,17 +59,14 @@ class _SplashScreen2State extends State<SplashScreen2>
 
   _navigateToNext() async {
     // Check if user is already logged in
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
+    final authService = DummyAuthService();
+    final currentUser = authService.currentUser;
 
-      if (user != null) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-        return;
-      }
-    } catch (e) {
-      debugPrint('Firebase not available: $e');
+    if (currentUser != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+      return;
     }
 
     // Navigate to login screen
