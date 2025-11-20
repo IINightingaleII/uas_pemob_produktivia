@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/splash_screen.dart';
+import 'screens/splash_screen_0.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         // Apply Inter font to all text styles
         textTheme: GoogleFonts.interTextTheme(),
       ),
-      home: const SplashScreen(),
+      home: const SplashScreen0(),
     );
   }
 }
