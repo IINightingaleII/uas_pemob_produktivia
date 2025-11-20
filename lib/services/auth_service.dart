@@ -158,6 +158,118 @@ class AuthService {
     }
   }
 
+  // Generate and send email OTP
+  Future<void> sendEmailOTP({
+    required String email,
+    required Function(String otpCode) onCodeGenerated,
+    required Function(String error) onError,
+  }) async {
+    if (!_isFirebaseInitialized) {
+      onError('Firebase is not configured. Please run: flutterfire configure');
+      return;
+    }
+
+    try {
+      // Generate 6-digit OTP
+      String otpCode = _generateOTP();
+      
+      // Store OTP in Firestore with expiration (10 minutes)
+      final otpData = {
+        'email': email,
+        'otp': otpCode,
+        'created_at': FieldValue.serverTimestamp(),
+        'expires_at': Timestamp.fromDate(
+          DateTime.now().add(const Duration(minutes: 10)),
+        ),
+        'verified': false,
+      };
+
+      await _firestoreInstance
+          .collection('email_otps')
+          .doc(email)
+          .set(otpData);
+
+      // Call the callback with the OTP code
+      // In production, you would send this via email using Cloud Functions
+      // For now, we'll pass it to the callback (you can log it for testing)
+      onCodeGenerated(otpCode);
+      
+      // TODO: Implement email sending via Cloud Functions
+      // The OTP should be sent via email, not exposed to the client
+      // For development/testing, you can check the console or Firestore
+    } catch (e) {
+      onError('An error occurred: $e');
+    }
+  }
+
+  // Generate 6-digit OTP
+  String _generateOTP() {
+    final random = DateTime.now().millisecondsSinceEpoch;
+    final otp = (random % 1000000).toString().padLeft(6, '0');
+    return otp;
+  }
+
+  // Verify email OTP
+  Future<bool> verifyEmailOTP({
+    required String email,
+    required String otpCode,
+  }) async {
+    if (!_isFirebaseInitialized) {
+      throw Exception('Firebase is not configured. Please run: flutterfire configure');
+    }
+
+    try {
+      // Get OTP document from Firestore
+      DocumentSnapshot doc = await _firestoreInstance
+          .collection('email_otps')
+          .doc(email)
+          .get();
+
+      if (!doc.exists) {
+        throw Exception('OTP not found. Please request a new code.');
+      }
+
+      final data = doc.data() as Map<String, dynamic>;
+      final storedOTP = data['otp'] as String?;
+      final expiresAt = (data['expires_at'] as Timestamp?)?.toDate();
+      final verified = data['verified'] as bool? ?? false;
+
+      // Check if already verified
+      if (verified) {
+        throw Exception('This OTP has already been used.');
+      }
+
+      // Check if expired
+      if (expiresAt == null || DateTime.now().isAfter(expiresAt)) {
+        throw Exception('OTP has expired. Please request a new code.');
+      }
+
+      // Verify OTP
+      if (storedOTP != otpCode) {
+        throw Exception('Invalid OTP code. Please try again.');
+      }
+
+      // Mark as verified
+      await _firestoreInstance
+          .collection('email_otps')
+          .doc(email)
+          .update({'verified': true});
+
+      // Mark user email as verified in Firebase Auth
+      if (currentUser != null && currentUser!.email == email) {
+        await currentUser!.reload();
+        if (!currentUser!.emailVerified) {
+          // Note: Firebase doesn't have a direct way to mark email as verified
+          // You may need to use email verification link or custom claims
+        }
+      }
+
+      return true;
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
   // Handle Firebase Auth exceptions
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
@@ -181,5 +293,6 @@ class AuthService {
         return 'An authentication error occurred: ${e.message}';
     }
   }
+
 }
 

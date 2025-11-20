@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../services/auth_service.dart';
 import '../utils/page_routes.dart';
 import 'login_screen.dart';
 import 'home_screen.dart';
+import 'otp_verification_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -42,6 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       });
 
       try {
+        // First, create the user account
         await _authService.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -50,11 +53,47 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
         if (!mounted) return;
 
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        // Send OTP to email
+        _authService.sendEmailOTP(
+          email: _emailController.text.trim(),
+          onCodeGenerated: (String otpCode) {
+            if (!mounted) return;
+            setState(() {
+              _isLoading = false;
+            });
+            
+            // For development: show OTP in console (remove in production)
+            debugPrint('Email OTP Code: $otpCode');
+            
+            Navigator.of(context).pushReplacement(
+              FadePageRoute(
+                page: OTPVerificationScreen(
+                  email: _emailController.text.trim(),
+                  displayName: _nameController.text.trim(),
+                ),
+              ),
+            );
+          },
+          onError: (String error) {
+            if (!mounted) return;
+            setState(() {
+              _isLoading = false;
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(error),
+                backgroundColor: Colors.red,
+              ),
+            );
+          },
         );
       } catch (e) {
         if (!mounted) return;
+
+        setState(() {
+          _isLoading = false;
+        });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -62,12 +101,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             backgroundColor: Colors.red,
           ),
         );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
       }
     }
   }
