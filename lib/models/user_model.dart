@@ -4,12 +4,14 @@ class UserModel {
   final String id;
   final String email;
   final String displayName;
+  final String? phoneNumber;
   final DateTime createdAt;
 
   UserModel({
     required this.id,
     required this.email,
     required this.displayName,
+    this.phoneNumber,
     required this.createdAt,
   });
 
@@ -19,6 +21,7 @@ class UserModel {
       id: id,
       email: data['email'] ?? '',
       displayName: data['display_name'] ?? '',
+      phoneNumber: data['phone_number'] as String?,
       createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -28,6 +31,7 @@ class UserModel {
     return {
       'email': email,
       'display_name': displayName,
+      'phone_number': phoneNumber,
       'created_at': Timestamp.fromDate(createdAt),
     };
   }
@@ -38,6 +42,7 @@ class UserModel {
       id: json['id'] ?? '',
       email: json['email'] ?? '',
       displayName: json['display_name'] ?? '',
+      phoneNumber: json['phone_number'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -50,6 +55,7 @@ class UserModel {
       'id': id,
       'email': email,
       'display_name': displayName,
+      'phone_number': phoneNumber,
       'created_at': createdAt.toIso8601String(),
     };
   }
