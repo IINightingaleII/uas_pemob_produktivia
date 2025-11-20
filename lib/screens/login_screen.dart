@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../utils/page_routes.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
 
@@ -17,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -71,8 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
             end: Alignment.bottomCenter,
             stops: [0.0, 1.0],
             colors: [
-              Color(0xFF9183DE), // Top color - 0% stop with 100% opacity
-              Color(0xFFA094E3), // Bottom color - 100% stop with 100% opacity
+              Color(0xFFFFB6C1), // Soft pink - top color
+              Color(0xFFDDA0DD), // Light purple - bottom color
             ],
           ),
         ),
@@ -84,16 +87,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 45),
                     
-                    // Rocket illustration
+                    // Sally illustration
                     Image.asset(
-                      'assets/icons/rocket_illustration.png',
+                      'assets/icons/Sally_login.png',
                       height: 280,
                       fit: BoxFit.contain,
                     ),
                     
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 1),
                     
                     // "Hi there!" text
                     const Text(
@@ -120,111 +123,199 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 40),
                     
                     // Email input field
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          hintText: 'Email',
-                          hintStyle: TextStyle(
-                            color: Colors.grey[800],
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.person_outline,
-                            color: Colors.grey[800],
-                            size: 24,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 18,
+                          child: TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              hintText: 'Email',
+                              hintStyle: TextStyle(
+                                color: Colors.grey[800],
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.person_outline,
+                                color: Colors.grey[800],
+                                size: 24,
+                              ),
+                              border: InputBorder.none,
+                              errorText: null,
+                              errorStyle: const TextStyle(height: 0, fontSize: 0),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 18,
+                              ),
+                            ),
+                            onChanged: (value) {
+                              if (_emailError != null) {
+                                setState(() {
+                                  _emailError = null;
+                                });
+                              }
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                setState(() {
+                                  _emailError = 'Please enter your email';
+                                });
+                                return null;
+                              }
+                              if (!value.contains('@')) {
+                                setState(() {
+                                  _emailError = 'Please enter a valid email';
+                                });
+                                return null;
+                              }
+                              setState(() {
+                                _emailError = null;
+                              });
+                              return null;
+                            },
                           ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
+                        if (_emailError != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, top: 8),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.yellow,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _emailError!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                     
                     const SizedBox(height: 20),
                     
                     // Password input field
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: TextFormField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        decoration: InputDecoration(
-                          hintText: 'Password',
-                          hintStyle: TextStyle(
-                            color: Colors.grey[800],
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.key_outlined,
-                            color: Colors.grey[800],
-                            size: 24,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: Colors.grey[800],
-                              size: 24,
+                          child: TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              hintText: 'Password',
+                              hintStyle: TextStyle(
+                                color: Colors.grey[800],
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.key_outlined,
+                                color: Colors.grey[800],
+                                size: 24,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: Colors.grey[800],
+                                  size: 24,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              border: InputBorder.none,
+                              errorText: null,
+                              errorStyle: const TextStyle(height: 0, fontSize: 0),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 18,
+                              ),
                             ),
-                            onPressed: () {
+                            onChanged: (value) {
+                              if (_passwordError != null) {
+                                setState(() {
+                                  _passwordError = null;
+                                });
+                              }
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                setState(() {
+                                  _passwordError = 'Please enter your password';
+                                });
+                                return null;
+                              }
+                              if (value.length < 6) {
+                                setState(() {
+                                  _passwordError = 'Password must be at least 6 characters';
+                                });
+                                return null;
+                              }
                               setState(() {
-                                _obscurePassword = !_obscurePassword;
+                                _passwordError = null;
                               });
+                              return null;
                             },
                           ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 18,
-                          ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
-                      ),
+                        if (_passwordError != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, top: 8),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.yellow,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _passwordError!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                     
                     const SizedBox(height: 30),
@@ -347,9 +438,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? null
                               : () {
                                   Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => const OnboardingScreen(),
-                                    ),
+                                    FadePageRoute(page: const OnboardingScreen()),
                                   );
                                 },
                           style: ElevatedButton.styleFrom(
