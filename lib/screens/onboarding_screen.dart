@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import '../services/dummy_auth_service.dart';
 import '../utils/page_routes.dart';
 import 'login_screen.dart';
