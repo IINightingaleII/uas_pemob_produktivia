@@ -16,7 +16,7 @@ class _SplashScreen0State extends State<SplashScreen0> {
     _navigateToNext();
   }
 
-  _navigateToNext() async {
+  Future<void> _navigateToNext() async {
     // First splash duration: 1500ms (static display)
     await Future.delayed(const Duration(milliseconds: 1500));
 

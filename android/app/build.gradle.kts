@@ -14,6 +14,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    
+    // Configure to show deprecation warnings details
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.add("-Xlint:deprecation")
+    }
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()

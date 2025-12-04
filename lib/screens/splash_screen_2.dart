@@ -57,7 +57,7 @@ class _SplashScreen2State extends State<SplashScreen2>
     _navigateToNext();
   }
 
-  _navigateToNext() async {
+  Future<void> _navigateToNext() async {
     // Check if user is already logged in
     final authService = DummyAuthService();
     final currentUser = authService.currentUser;

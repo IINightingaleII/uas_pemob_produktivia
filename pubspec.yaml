@@ -36,15 +36,15 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Firebase
-  firebase_core: ^3.6.0
-  firebase_auth: ^5.3.1
-  cloud_firestore: ^5.4.4
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
   
   # State Management
   provider: ^6.1.2
   
   # Utilities
-  intl: ^0.19.0
+  intl: ^0.20.2
   
   # Fonts
   google_fonts: ^6.2.1
@@ -58,7 +58,13 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
+  
+  # Native splash screen configuration
+  flutter_native_splash: ^2.4.1
+  
+  # Launcher icons configuration
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -104,3 +110,25 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Flutter Native Splash configuration
+# Using static_native.png as fullscreen image (already has gradient background)
+flutter_native_splash:
+  # Background color (required, but image will cover it)
+  color: "#9183DE"
+  # Image untuk native splash screen - fullscreen
+  image: assets/icons/static_native.png
+  # Fullscreen mode
+  fullscreen: true
+  # Android 12+ splash screen configuration
+  android_12:
+    image: assets/icons/iconsa12.png
+    icon_background_color: "#9183DE"
+
+# Flutter Launcher Icons configuration
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icons/Produktivia.png"
+  adaptive_icon_background: "#9183DE"
+  adaptive_icon_foreground: "assets/icons/Produktivia.png"
