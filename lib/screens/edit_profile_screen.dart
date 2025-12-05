@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
-import '../services/dummy_auth_service.dart';
 import '../widgets/home_drawer.dart';
 import '../widgets/image_picker_overlay.dart';
 import '../screens/login_screen.dart';
@@ -24,21 +23,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ImagePicker _imagePicker = ImagePicker();
   final AuthService _authService = AuthService();
-  final DummyAuthService _dummyAuthService = DummyAuthService(); // Untuk profile image
   File? _profileImageFile;
   File? _selectedImageFile; // Untuk preview di overlay
+  String? _profileImageUrl; // URL dari Firestore
 
   @override
   void initState() {
     super.initState();
-    // Load profile image from service
-    final profileImagePath = _dummyAuthService.profileImagePath;
-    if (profileImagePath != null) {
-      final file = File(profileImagePath);
-      if (file.existsSync()) {
-        _profileImageFile = file;
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final userData = await _authService.getCurrentUserData();
+      if (userData != null && userData.profileImageUrl != null) {
+        setState(() {
+          _profileImageUrl = userData.profileImageUrl;
+        });
       }
+    } catch (e) {
+      // Ignore error, akan menggunakan default icon
     }
+  }
+
+  ImageProvider? _getProfileImageProvider() {
+    // Prioritas: file lokal (baru diupload) > URL dari Firestore
+    if (_profileImageFile != null) {
+      return FileImage(_profileImageFile!);
+    } else if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
+      return NetworkImage(_profileImageUrl!);
+    }
+    return null;
   }
 
   Future<void> _pickImageFromGallery() async {
@@ -147,9 +162,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           final downloadUrl = await _authService.uploadProfileImage(croppedFile);
           
           setState(() {
-            _profileImageFile = croppedFile;
+            _profileImageFile = croppedFile; // Tampilkan file lokal dulu
+            _profileImageUrl = downloadUrl; // Simpan URL untuk reload nanti
             _selectedImageFile = null;
           });
+          
+          // Reload profile image dari Firestore untuk memastikan konsistensi
+          await _loadProfileImage();
           
           // Close overlay
           Navigator.pop(context);
@@ -418,10 +437,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             desktop: 100.0,
                           ),
                           backgroundColor: const Color(0xFF9183DE).withOpacity(0.2),
-                          backgroundImage: _profileImageFile != null
-                              ? FileImage(_profileImageFile!)
-                              : null,
-                          child: _profileImageFile == null
+                          backgroundImage: _getProfileImageProvider(),
+                          child: _getProfileImageProvider() == null
                               ? Icon(
                                   Icons.person,
                                   size: Responsive.value(

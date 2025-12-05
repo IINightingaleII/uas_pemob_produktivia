@@ -1,11 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../screens/edit_profile_screen.dart';
 import '../screens/focus_mode_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/leaderboards_screen.dart';
 import '../screens/home_screen.dart';
-import '../services/dummy_auth_service.dart';
+import '../services/auth_service.dart';
 
 class HomeDrawer extends StatelessWidget {
   final dynamic currentUser;
@@ -39,26 +38,21 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 // Profile picture
-                Builder(
-                  builder: (context) {
-                    final authService = DummyAuthService();
-                    final profileImagePath = authService.profileImagePath;
-                    File? profileImageFile;
-                    
-                    if (profileImagePath != null) {
-                      final file = File(profileImagePath);
-                      if (file.existsSync()) {
-                        profileImageFile = file;
-                      }
+                FutureBuilder(
+                  future: AuthService().getCurrentUserData(),
+                  builder: (context, snapshot) {
+                    String? profileImageUrl;
+                    if (snapshot.hasData && snapshot.data != null) {
+                      profileImageUrl = snapshot.data!.profileImageUrl;
                     }
                     
                     return CircleAvatar(
                       radius: 40,
                       backgroundColor: Colors.grey.shade300,
-                      backgroundImage: profileImageFile != null
-                          ? FileImage(profileImageFile)
+                      backgroundImage: profileImageUrl != null && profileImageUrl.isNotEmpty
+                          ? NetworkImage(profileImageUrl)
                           : null,
-                      child: profileImageFile == null
+                      child: profileImageUrl == null || profileImageUrl.isEmpty
                           ? const Icon(
                               Icons.person,
                               size: 40,
