@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/responsive.dart';
 
 class HomeHeader extends StatelessWidget {
   final VoidCallback onMenuTap;
@@ -12,7 +13,10 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.paddingHorizontal(context),
+        vertical: Responsive.spacing(context, 12),
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -23,8 +27,8 @@ class HomeHeader extends StatelessWidget {
               onTap: onMenuTap,
               child: Image.asset(
                 'assets/icons2/Nav.png',
-                width: 24,
-                height: 24,
+                width: Responsive.iconSize(context, 24),
+                height: Responsive.iconSize(context, 24),
               ),
             ),
           ),
@@ -32,7 +36,7 @@ class HomeHeader extends StatelessWidget {
           Text(
             'Daily tasks',
             style: GoogleFonts.jost(
-              fontSize: 20,
+              fontSize: Responsive.fontSize(context, 20),
               color: const Color(0xFF9183DE), // Light purple
               fontWeight: FontWeight.w400, // Regular
             ),

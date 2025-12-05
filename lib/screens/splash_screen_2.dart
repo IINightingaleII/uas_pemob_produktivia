@@ -111,17 +111,23 @@ class _SplashScreen2State extends State<SplashScreen2>
                 ),
                 // Text that fades in
                 if (_showText)
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: Text(
-                        'PRODUKTIVIA',
-                        style: GoogleFonts.darkerGrotesque(
-                          color: Colors.white,
-                          fontSize: 42,
-                          fontWeight: FontWeight.normal,
-                          letterSpacing: 3.0,
+                  Flexible(
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'PRODUKTIVIA',
+                            style: GoogleFonts.darkerGrotesque(
+                              color: Colors.white,
+                              fontSize: 42,
+                              fontWeight: FontWeight.normal,
+                              letterSpacing: 3.0,
+                            ),
+                          ),
                         ),
                       ),
                     ),

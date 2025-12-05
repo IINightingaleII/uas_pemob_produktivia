@@ -142,68 +142,72 @@ class AddTaskDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      ColorOption(
-                        color: 0xFF4CAF50, // Material Green - kontras dengan putih
-                        isSelected: selectedColor == 0xFF4CAF50,
-                        onTap: () {
-                          setDialogState(() {
-                            selectedColor = 0xFF4CAF50;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ColorOption(
-                        color: 0xFFF44336, // Material Red - kontras dengan putih
-                        isSelected: selectedColor == 0xFFF44336,
-                        onTap: () {
-                          setDialogState(() {
-                            selectedColor = 0xFFF44336;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ColorOption(
-                        color: 0xFFFF9800, // Material Orange - kontras dengan putih
-                        isSelected: selectedColor == 0xFFFF9800,
-                        onTap: () {
-                          setDialogState(() {
-                            selectedColor = 0xFFFF9800;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ColorOption(
-                        color: 0xFFFFC107, // Material Amber - kontras dengan putih
-                        isSelected: selectedColor == 0xFFFFC107,
-                        onTap: () {
-                          setDialogState(() {
-                            selectedColor = 0xFFFFC107;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ColorOption(
-                        color: 0xFF2196F3, // Material Blue - kontras dengan putih
-                        isSelected: selectedColor == 0xFF2196F3,
-                        onTap: () {
-                          setDialogState(() {
-                            selectedColor = 0xFF2196F3;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ColorOption(
-                        color: 0xFF9C27B0, // Material Purple - kontras dengan putih
-                        isSelected: selectedColor == 0xFF9C27B0,
-                        onTap: () {
-                          setDialogState(() {
-                            selectedColor = 0xFF9C27B0;
-                          });
-                        },
-                      ),
-                    ],
+                  SizedBox(
+                    height: 48, // Fixed height untuk color options
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        ColorOption(
+                          color: 0xFF4CAF50, // Material Green - kontras dengan putih
+                          isSelected: selectedColor == 0xFF4CAF50,
+                          onTap: () {
+                            setDialogState(() {
+                              selectedColor = 0xFF4CAF50;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        ColorOption(
+                          color: 0xFFF44336, // Material Red - kontras dengan putih
+                          isSelected: selectedColor == 0xFFF44336,
+                          onTap: () {
+                            setDialogState(() {
+                              selectedColor = 0xFFF44336;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        ColorOption(
+                          color: 0xFFFF9800, // Material Orange - kontras dengan putih
+                          isSelected: selectedColor == 0xFFFF9800,
+                          onTap: () {
+                            setDialogState(() {
+                              selectedColor = 0xFFFF9800;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        ColorOption(
+                          color: 0xFFFFC107, // Material Amber - kontras dengan putih
+                          isSelected: selectedColor == 0xFFFFC107,
+                          onTap: () {
+                            setDialogState(() {
+                              selectedColor = 0xFFFFC107;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        ColorOption(
+                          color: 0xFF2196F3, // Material Blue - kontras dengan putih
+                          isSelected: selectedColor == 0xFF2196F3,
+                          onTap: () {
+                            setDialogState(() {
+                              selectedColor = 0xFF2196F3;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        ColorOption(
+                          color: 0xFF9C27B0, // Material Purple - kontras dengan putih
+                          isSelected: selectedColor == 0xFF9C27B0,
+                          onTap: () {
+                            setDialogState(() {
+                              selectedColor = 0xFF9C27B0;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                   // Set Time Field (Start Time)

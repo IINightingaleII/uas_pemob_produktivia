@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/dummy_auth_service.dart';
+import '../services/auth_service.dart';
 import '../utils/page_routes.dart';
 import 'login_screen.dart';
-import 'home_screen.dart';
+import 'email_verification_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -17,7 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authService = DummyAuthService();
+  final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -55,9 +55,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _isLoading = false;
         });
 
-        // Navigate directly to home screen after successful registration
+        // Navigate to email verification screen after successful registration
         Navigator.of(context).pushReplacement(
-          FadePageRoute(page: const HomeScreen()),
+          FadePageRoute(
+            page: EmailVerificationScreen(
+              email: _emailController.text.trim(),
+              displayName: _nameController.text.trim(),
+            ),
+          ),
         );
       } catch (e) {
         if (!mounted) return;
@@ -153,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: TextFormField(
                             controller: _nameController,
                             decoration: InputDecoration(
-                              hintText: 'Display Name',
+                              hintText: 'Profile Name',
                               hintStyle: TextStyle(
                                 color: Colors.grey[800],
                                 fontSize: 18,

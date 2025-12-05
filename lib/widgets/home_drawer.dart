@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../screens/edit_profile_screen.dart';
 import '../screens/focus_mode_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/leaderboards_screen.dart';
+import '../screens/home_screen.dart';
+import '../services/dummy_auth_service.dart';
 
 class HomeDrawer extends StatelessWidget {
   final dynamic currentUser;
@@ -36,14 +39,34 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 // Profile picture
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.grey.shade300,
-                  child: const Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Colors.grey,
-                  ),
+                Builder(
+                  builder: (context) {
+                    final authService = DummyAuthService();
+                    final profileImagePath = authService.profileImagePath;
+                    File? profileImageFile;
+                    
+                    if (profileImagePath != null) {
+                      final file = File(profileImagePath);
+                      if (file.existsSync()) {
+                        profileImageFile = file;
+                      }
+                    }
+                    
+                    return CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.grey.shade300,
+                      backgroundImage: profileImageFile != null
+                          ? FileImage(profileImageFile)
+                          : null,
+                      child: profileImageFile == null
+                          ? const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.grey,
+                            )
+                          : null,
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 // Display name
@@ -76,7 +99,7 @@ class HomeDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: 'assets/icons2/edit.png',
-                  title: 'Edit profile',
+                  title: 'Profile',
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -90,10 +113,15 @@ class HomeDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: 'assets/icons2/home-dailytask.png',
-                  title: 'Daily tasks',
+                  title: 'Tasks',
                   onTap: () {
                     Navigator.pop(context);
-                    // Already on home screen
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                    );
                   },
                 ),
                 _buildDrawerItem(

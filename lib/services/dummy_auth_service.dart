@@ -6,6 +6,8 @@ class DummyAuthService {
   // In-memory storage for users
   static final Map<String, Map<String, dynamic>> _users = {};
   static UserModel? _currentUser;
+  // Profile image storage
+  static String? _currentUserProfileImagePath;
 
   /// Get current logged in user
   UserModel? get currentUser => _currentUser;
@@ -95,10 +97,19 @@ class DummyAuthService {
     return _currentUser;
   }
 
+  /// Set profile image path for current user
+  void setProfileImagePath(String? imagePath) {
+    _currentUserProfileImagePath = imagePath;
+  }
+
+  /// Get profile image path for current user
+  String? get profileImagePath => _currentUserProfileImagePath;
+
   /// Clear all users (for testing)
   static void clearAllUsers() {
     _users.clear();
     _currentUser = null;
+    _currentUserProfileImagePath = null;
   }
 }
 
