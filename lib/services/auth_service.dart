@@ -46,7 +46,7 @@ class AuthService {
     }
   }
 
-  // Auth state stream
+  // Auth state stream (fires on login/logout)
   Stream<User?> get authStateChanges {
     if (!_isFirebaseInitialized) {
       return Stream.value(null);
@@ -55,6 +55,54 @@ class AuthService {
       return _authInstance.authStateChanges();
     } catch (e) {
       return Stream.value(null);
+    }
+  }
+
+  // User changes stream (fires on user data changes like email, displayName, etc.)
+  Stream<User?> get userChanges {
+    if (!_isFirebaseInitialized) {
+      return Stream.value(null);
+    }
+    try {
+      return _authInstance.userChanges().asyncMap((user) async {
+        // Sync Firebase Auth data to Firestore when user data changes
+        if (user != null) {
+          await _syncUserDataToFirestore(user);
+        }
+        return user;
+      });
+    } catch (e) {
+      return Stream.value(null);
+    }
+  }
+
+  // Sync user data from Firebase Auth to Firestore
+  Future<void> _syncUserDataToFirestore(User user) async {
+    if (!_isFirebaseInitialized) return;
+
+    try {
+      // Get current Firestore data to preserve fields like profile_image_url
+      final currentUserData = await getCurrentUserData();
+      
+      // Prepare update data
+      Map<String, dynamic> updateData = {
+        'email': user.email ?? '',
+        'display_name': user.displayName ?? '',
+      };
+
+      // Preserve profile_image_url if it exists
+      if (currentUserData?.profileImageUrl != null) {
+        updateData['profile_image_url'] = currentUserData!.profileImageUrl;
+      }
+
+      // Update Firestore with latest data from Firebase Auth
+      await _firestoreInstance
+          .collection('users')
+          .doc(user.uid)
+          .update(updateData);
+    } catch (e) {
+      // Silently fail - don't throw error for background sync
+      // This is just to keep Firestore in sync with Firebase Auth
     }
   }
 
@@ -238,10 +286,42 @@ class AuthService {
     }
   }
 
+  // Re-authenticate user (required for sensitive operations like email change)
+  Future<void> reauthenticateUser(String password) async {
+    if (!_isFirebaseInitialized) {
+      throw Exception('Firebase is not configured. Please run: flutterfire configure');
+    }
+
+    try {
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in.');
+      }
+
+      if (user.email == null) {
+        throw Exception('User email is not available.');
+      }
+
+      // Create credential with current email and password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+
+      // Re-authenticate user
+      await user.reauthenticateWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleAuthException(e));
+    } catch (e) {
+      throw Exception('Re-authentication failed: $e');
+    }
+  }
+
   // Update user profile (nama profile/display name)
   Future<void> updateProfile({
     required String displayName,
     String? email,
+    String? password, // Password required if email is being changed
   }) async {
     if (!_isFirebaseInitialized) {
       throw Exception('Firebase is not configured. Please run: flutterfire configure');
@@ -260,26 +340,51 @@ class AuthService {
       // Update email if provided and different from current email
       await user.reload();
 
+      // Get current user data to preserve existing fields (like profile_image_url)
+      final currentUserData = await getCurrentUserData();
+      
       // Update in Firestore
       Map<String, dynamic> updateData = {
         'display_name': displayName,
       };
       
+      // Preserve profile_image_url if it exists
+      if (currentUserData?.profileImageUrl != null) {
+        updateData['profile_image_url'] = currentUserData!.profileImageUrl;
+      }
+      
       if (email != null && email.trim() != user.email) {
-        // Update email in Firestore
-        updateData['email'] = email.trim();
-        
-        // Try to use verifyBeforeUpdateEmail if available (safer, no re-auth needed)
-        // If not available, we'll only update in Firestore
-        try {
-          // This method sends verification email to new email
-          // Email will be updated in Firebase Auth after user verifies
-          await user.verifyBeforeUpdateEmail(email.trim());
-        } catch (e) {
-          // If verifyBeforeUpdateEmail is not available or fails,
-          // we'll just update in Firestore
-          // User can login with new email after creating account with it
+        // Re-authenticate user before changing email (required by Firebase)
+        if (password == null || password.isEmpty) {
+          throw Exception('Password is required to change email address.');
         }
+
+        try {
+          // Re-authenticate user with password
+          await reauthenticateUser(password);
+        } catch (e) {
+          // Re-throw re-authentication errors
+          throw Exception('Re-authentication failed: $e');
+        }
+
+        // Verify email before updating
+        // This method sends verification email to the NEW email address
+        // Email will be updated in Firebase Auth after user verifies the new email
+        try {
+          await user.verifyBeforeUpdateEmail(email.trim());
+          // If successful, verification email is sent to the new email
+          // Don't update email in Firestore yet - wait for user to verify
+          // The email in Firebase Auth will be updated automatically after verification
+        } on FirebaseAuthException catch (e) {
+          // Re-throw with a more user-friendly message
+          throw Exception('Failed to send verification email: ${_handleAuthException(e)}');
+        } catch (e) {
+          // Re-throw any other errors
+          throw Exception('Failed to send verification email: $e');
+        }
+        
+        // Update email in Firestore (will be synced with Firebase Auth after verification)
+        updateData['email'] = email.trim();
       }
       
       await _firestoreInstance
@@ -378,8 +483,12 @@ class AuthService {
         return 'Too many requests. Please try again later.';
       case 'operation-not-allowed':
         return 'This operation is not allowed.';
+      case 'requires-recent-login':
+        return 'This operation requires recent authentication. Please sign out and sign in again.';
+      case 'invalid-action-code':
+        return 'The verification link is invalid or has expired.';
       default:
-        return 'An authentication error occurred: ${e.message}';
+        return 'An authentication error occurred: ${e.message ?? e.code}';
     }
   }
 

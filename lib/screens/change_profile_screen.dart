@@ -35,6 +35,65 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
     super.dispose();
   }
 
+  Future<String?> _requestPassword() async {
+    final passwordController = TextEditingController();
+    
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Confirm Password',
+            style: GoogleFonts.darkerGrotesque(
+              fontSize: Responsive.fontSize(context, 18),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: TextField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: InputDecoration(
+              labelText: 'Enter your password',
+              hintText: 'Password',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            style: GoogleFonts.darkerGrotesque(
+              fontSize: Responsive.fontSize(context, 16),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.darkerGrotesque(
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (passwordController.text.isNotEmpty) {
+                  Navigator.of(context).pop(passwordController.text);
+                }
+              },
+              child: Text(
+                'Confirm',
+                style: GoogleFonts.darkerGrotesque(
+                  color: const Color(0xFF9183DE),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _handleDone() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
@@ -47,10 +106,23 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
         final newEmail = _emailController.text.trim();
         final emailChanged = newEmail != currentEmail;
 
+        // Request password if email is being changed
+        String? password;
+        if (emailChanged) {
+          password = await _requestPassword();
+          if (password == null || password.isEmpty) {
+            setState(() {
+              _isLoading = false;
+            });
+            return; // User cancelled password entry
+          }
+        }
+
         // Update nama profile dan email (jika berubah)
         await _authService.updateProfile(
           displayName: _nameController.text.trim(),
           email: emailChanged ? newEmail : null,
+          password: password,
         );
 
         if (!mounted) return;
@@ -62,14 +134,14 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
         // Show success message
         String successMessage = 'Profile name updated successfully';
         if (emailChanged) {
-          successMessage += '\nEmail updated successfully. Please check your new email for verification. Email will be active after verification.';
+          successMessage = 'Profile name updated successfully.\n\nVerification email has been sent to: ${_emailController.text.trim()}\n\nPlease check your new email inbox (and spam folder) and click the verification link. Your email will be updated after verification.';
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(successMessage),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 6),
           ),
         );
         Navigator.pop(context);

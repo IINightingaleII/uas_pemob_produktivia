@@ -26,11 +26,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   File? _profileImageFile;
   File? _selectedImageFile; // Untuk preview di overlay
   String? _profileImageUrl; // URL dari Firestore
+  String? _lastSyncedEmail; // Track last synced email to detect changes
 
   @override
   void initState() {
     super.initState();
     _loadProfileImage();
+    final currentUser = _authService.currentUser;
+    _lastSyncedEmail = currentUser?.email;
   }
 
   Future<void> _loadProfileImage() async {
@@ -374,9 +377,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: _authService.authStateChanges,
+      stream: _authService.userChanges, // Use userChanges to listen for email/displayName updates
       builder: (context, snapshot) {
         final currentUser = _authService.currentUser;
+        
+        // Reload profile image when user data changes (especially email)
+        if (snapshot.hasData && snapshot.data != null) {
+          final newEmail = snapshot.data!.email;
+          if (newEmail != _lastSyncedEmail) {
+            // Email changed, reload profile image
+            _lastSyncedEmail = newEmail;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _loadProfileImage();
+            });
+          }
+        }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -539,13 +554,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           _buildMenuOption(
                             icon: 'assets/icons2/change_profile.png',
                             title: 'Change Profile',
-                            onTap: () {
-                              Navigator.push(
+                            onTap: () async {
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const ChangeProfileScreen(),
                                 ),
                               );
+                              // Reload profile image after returning from Change Profile
+                              if (mounted) {
+                                await _loadProfileImage();
+                                setState(() {
+                                  // Force rebuild to show updated image
+                                });
+                              }
                             },
                           ),
                           SizedBox(height: Responsive.spacing(context, 16)),

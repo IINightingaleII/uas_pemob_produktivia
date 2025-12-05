@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final authService = AuthService();
 
     return StreamBuilder(
-      stream: authService.authStateChanges,
+      stream: authService.userChanges, // Use userChanges to listen for email/displayName updates
       builder: (context, snapshot) {
         final currentUser = authService.currentUser;
 

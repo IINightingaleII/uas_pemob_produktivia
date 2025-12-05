@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "144322551364",
+    "project_id": "produ-b6f42",
+    "storage_bucket": "produ-b6f42.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:144322551364:android:6da4a27774a54bfa84a611",
+        "android_client_info": {
+          "package_name": "com.example.uas_pemob"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPSjzW5dsw0Hy4zjDxC6N-KiJfK3KdQ9E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
