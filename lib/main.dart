@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // Import file yang di-generate
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/splash_screen_0.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,15 @@ void main() async {
   } catch (e) {
     print('✗ Firebase initialization failed: $e');
     // App akan tetap jalan, tapi auth tidak akan berfungsi
+  }
+  
+  // Initialize Notification Service
+  try {
+    await NotificationService().initialize();
+    print('✓ Notification service initialized successfully');
+  } catch (e) {
+    print('✗ Notification service initialization failed: $e');
+    // App akan tetap jalan, tapi notifikasi tidak akan berfungsi
   }
   
   runApp(const MyApp());

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/task_model.dart';
 import '../services/auth_service.dart';
 import '../services/task_service.dart';
+import '../services/notification_service.dart';
 import '../widgets/clock_widget.dart';
 import '../widgets/add_task_dialog.dart';
 import '../widgets/edit_task_dialog.dart';
@@ -36,6 +37,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _startTimer();
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    // Initialize notification service and schedule all task notifications
+    try {
+      final notificationService = NotificationService();
+      await notificationService.initialize();
+      
+      // Schedule notifications for all tasks when tasks are loaded
+      _taskService.getTasksStream().listen((tasks) async {
+        await notificationService.scheduleAllTaskNotifications(tasks);
+      });
+    } catch (e) {
+      debugPrint('Failed to initialize notifications: $e');
+    }
   }
 
   void _startTimer() {

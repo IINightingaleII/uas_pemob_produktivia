@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/task_model.dart';
+import 'notification_service.dart';
 
 class TaskService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
 
   // Get current user ID
   String? get _userId => _auth.currentUser?.uid;
@@ -87,6 +89,11 @@ class TaskService {
           .collection('tasks')
           .doc(task.id)
           .set(task.toFirestore());
+      
+      // Schedule notification for the task
+      if (!task.isCompleted && task.date != null) {
+        await _notificationService.scheduleTaskNotification(task);
+      }
     } catch (e) {
       throw Exception('Failed to add task: $e');
     }
@@ -105,6 +112,9 @@ class TaskService {
           .collection('tasks')
           .doc(task.id)
           .update(task.toFirestore());
+      
+      // Update notification for the task
+      await _notificationService.updateTaskNotification(task);
     } catch (e) {
       throw Exception('Failed to update task: $e');
     }
@@ -123,6 +133,9 @@ class TaskService {
           .collection('tasks')
           .doc(taskId)
           .delete();
+      
+      // Cancel notification for the task
+      await _notificationService.cancelTaskNotification(taskId);
     } catch (e) {
       throw Exception('Failed to delete task: $e');
     }
@@ -135,15 +148,28 @@ class TaskService {
     }
 
     try {
+      final newCompletionStatus = !task.isCompleted;
+      
       await _firestore
           .collection('users')
           .doc(_userId)
           .collection('tasks')
           .doc(task.id)
           .update({
-        'is_completed': !task.isCompleted,
+        'is_completed': newCompletionStatus,
         'updated_at': FieldValue.serverTimestamp(),
       });
+      
+      // Update notification: cancel if completed, schedule if uncompleted
+      if (newCompletionStatus) {
+        // Task completed, cancel notification
+        await _notificationService.cancelTaskNotification(task.id);
+      } else {
+        // Task uncompleted, schedule notification
+        await _notificationService.scheduleTaskNotification(
+          task.copyWith(isCompleted: false),
+        );
+      }
     } catch (e) {
       throw Exception('Failed to toggle task: $e');
     }
