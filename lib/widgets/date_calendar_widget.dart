@@ -53,9 +53,15 @@ class DateCalendarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the week containing the selected date
-    final startOfWeek = selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
-    final weekDates = List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+    // Get all days in the selected month
+    final lastDayOfMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0);
+    final daysInMonth = lastDayOfMonth.day;
+    
+    // Generate list of all dates in the month
+    final monthDates = List.generate(
+      daysInMonth,
+      (index) => DateTime(selectedDate.year, selectedDate.month, index + 1),
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -127,56 +133,59 @@ class DateCalendarWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Week dates row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: weekDates.map((date) {
-              final isSelected = date.year == selectedDate.year &&
-                  date.month == selectedDate.month &&
-                  date.day == selectedDate.day;
-              
-              return GestureDetector(
-                onTap: () => onDateSelected(date),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    gradient: isSelected
-                        ? const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            stops: [0.0, 1.0],
-                            colors: [
-                              Color(0xFFFFB6C1), // Soft pink
-                              Color(0xFFDDA0DD), // Light purple
-                            ],
-                          )
-                        : null,
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        date.day.toString(),
-                        style: GoogleFonts.jost(
-                          fontSize: 14,
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w600,
+          // All days in month carousel
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: monthDates.map((date) {
+                final isSelected = date.year == selectedDate.year &&
+                    date.month == selectedDate.month &&
+                    date.day == selectedDate.day;
+                
+                return GestureDetector(
+                  onTap: () => onDateSelected(date),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      gradient: isSelected
+                          ? const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: [0.0, 1.0],
+                              colors: [
+                                Color(0xFFFFB6C1), // Soft pink
+                                Color(0xFFDDA0DD), // Light purple
+                              ],
+                            )
+                          : null,
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          date.day.toString(),
+                          style: GoogleFonts.jost(
+                            fontSize: 14,
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _getDayAbbreviation(date.weekday),
-                        style: GoogleFonts.jost(
-                          fontSize: 12,
-                          color: isSelected ? Colors.white : Colors.grey,
-                          fontWeight: FontWeight.w400,
+                        const SizedBox(height: 4),
+                        Text(
+                          _getDayAbbreviation(date.weekday),
+                          style: GoogleFonts.jost(
+                            fontSize: 12,
+                            color: isSelected ? Colors.white : Colors.grey,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),

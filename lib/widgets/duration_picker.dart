@@ -21,76 +21,116 @@ Future<void> showDurationPicker(
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Column(
-                      children: [
-                        const Text('Hours'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove),
-                              onPressed: () {
-                                setState(() {
-                                  if (hours > 0) hours--;
-                                });
-                              },
+                    Flexible(
+                      flex: 1,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Hours'),
+                          const SizedBox(height: 8),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 28,
+                                    minHeight: 28,
+                                  ),
+                                  iconSize: 18,
+                                  onPressed: () {
+                                    setState(() {
+                                      if (hours > 0) hours--;
+                                    });
+                                  },
+                                ),
+                                Text(
+                                  hours.toString().padLeft(2, '0'),
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 28,
+                                    minHeight: 28,
+                                  ),
+                                  iconSize: 18,
+                                  onPressed: () {
+                                    setState(() {
+                                      if (hours < 23) hours++;
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
-                            Text(
-                              hours.toString().padLeft(2, '0'),
-                              style: const TextStyle(fontSize: 24),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () {
-                                setState(() {
-                                  if (hours < 23) hours++;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 24),
-                    Column(
-                      children: [
-                        const Text('Minutes'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove),
-                              onPressed: () {
-                                setState(() {
-                                  if (minutes > 0) {
-                                    minutes--;
-                                  } else if (minutes == 0 && hours > 0) {
-                                    minutes = 59;
-                                    hours--;
-                                  }
-                                });
-                              },
+                    const SizedBox(width: 8),
+                    Flexible(
+                      flex: 1,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Minutes'),
+                          const SizedBox(height: 8),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 28,
+                                    minHeight: 28,
+                                  ),
+                                  iconSize: 18,
+                                  onPressed: () {
+                                    setState(() {
+                                      if (minutes > 0) {
+                                        minutes--;
+                                      } else if (minutes == 0 && hours > 0) {
+                                        minutes = 59;
+                                        hours--;
+                                      }
+                                    });
+                                  },
+                                ),
+                                Text(
+                                  minutes.toString().padLeft(2, '0'),
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 28,
+                                    minHeight: 28,
+                                  ),
+                                  iconSize: 18,
+                                  onPressed: () {
+                                    setState(() {
+                                      if (minutes < 59) {
+                                        minutes++;
+                                      } else {
+                                        minutes = 0;
+                                        if (hours < 23) hours++;
+                                      }
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
-                            Text(
-                              minutes.toString().padLeft(2, '0'),
-                              style: const TextStyle(fontSize: 24),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () {
-                                setState(() {
-                                  if (minutes < 59) {
-                                    minutes++;
-                                  } else {
-                                    minutes = 0;
-                                    if (hours < 23) hours++;
-                                  }
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

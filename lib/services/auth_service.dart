@@ -1,12 +1,15 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/user_model.dart';
 
 class AuthService {
   // Lazy initialization - only access Firebase when needed
   FirebaseAuth? _auth;
   FirebaseFirestore? _firestore;
+  FirebaseStorage? _storage;
 
   FirebaseAuth get _authInstance {
     _auth ??= FirebaseAuth.instance;
@@ -16,6 +19,11 @@ class AuthService {
   FirebaseFirestore get _firestoreInstance {
     _firestore ??= FirebaseFirestore.instance;
     return _firestore!;
+  }
+
+  FirebaseStorage get _storageInstance {
+    _storage ??= FirebaseStorage.instance;
+    return _storage!;
   }
 
   // Check if Firebase is initialized
@@ -38,7 +46,7 @@ class AuthService {
     }
   }
 
-  // Auth state stream
+  // Auth state stream (fires on login/logout)
   Stream<User?> get authStateChanges {
     if (!_isFirebaseInitialized) {
       return Stream.value(null);
@@ -47,6 +55,54 @@ class AuthService {
       return _authInstance.authStateChanges();
     } catch (e) {
       return Stream.value(null);
+    }
+  }
+
+  // User changes stream (fires on user data changes like email, displayName, etc.)
+  Stream<User?> get userChanges {
+    if (!_isFirebaseInitialized) {
+      return Stream.value(null);
+    }
+    try {
+      return _authInstance.userChanges().asyncMap((user) async {
+        // Sync Firebase Auth data to Firestore when user data changes
+        if (user != null) {
+          await _syncUserDataToFirestore(user);
+        }
+        return user;
+      });
+    } catch (e) {
+      return Stream.value(null);
+    }
+  }
+
+  // Sync user data from Firebase Auth to Firestore
+  Future<void> _syncUserDataToFirestore(User user) async {
+    if (!_isFirebaseInitialized) return;
+
+    try {
+      // Get current Firestore data to preserve fields like profile_image_url
+      final currentUserData = await getCurrentUserData();
+      
+      // Prepare update data
+      Map<String, dynamic> updateData = {
+        'email': user.email ?? '',
+        'display_name': user.displayName ?? '',
+      };
+
+      // Preserve profile_image_url if it exists
+      if (currentUserData?.profileImageUrl != null) {
+        updateData['profile_image_url'] = currentUserData!.profileImageUrl;
+      }
+
+      // Update Firestore with latest data from Firebase Auth
+      await _firestoreInstance
+          .collection('users')
+          .doc(user.uid)
+          .update(updateData);
+    } catch (e) {
+      // Silently fail - don't throw error for background sync
+      // This is just to keep Firestore in sync with Firebase Auth
     }
   }
 
@@ -69,6 +125,11 @@ class AuthService {
 
       // Update display name
       await userCredential.user?.updateDisplayName(displayName);
+      await userCredential.user?.updateProfile(displayName: displayName);
+      await userCredential.user?.reload();
+
+      // Send email verification
+      await userCredential.user?.sendEmailVerification();
 
       // Create user document in Firestore
       UserModel newUser = UserModel(
@@ -106,6 +167,16 @@ class AuthService {
         password: password,
       );
 
+      // Reload user to get latest email verification status
+      await userCredential.user?.reload();
+      final user = _authInstance.currentUser;
+
+      // Check if email is verified
+      if (user != null && !user.emailVerified) {
+        await signOut();
+        throw Exception('Please verify your email before signing in. Check your inbox for the verification link.');
+      }
+
       // Get user data from Firestore
       DocumentSnapshot doc = await _firestoreInstance
           .collection('users')
@@ -123,7 +194,7 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleAuthException(e));
     } catch (e) {
-      throw Exception('An error occurred: $e');
+      throw Exception(e.toString());
     }
   }
 
@@ -158,115 +229,238 @@ class AuthService {
     }
   }
 
-  // Generate and send email OTP
-  Future<void> sendEmailOTP({
-    required String email,
-    required Function(String otpCode) onCodeGenerated,
-    required Function(String error) onError,
-  }) async {
+  // Send email verification
+  Future<void> sendEmailVerification() async {
     if (!_isFirebaseInitialized) {
-      onError('Firebase is not configured. Please run: flutterfire configure');
-      return;
+      throw Exception('Firebase is not configured. Please run: flutterfire configure');
     }
 
     try {
-      // Generate 6-digit OTP
-      String otpCode = _generateOTP();
-      
-      // Store OTP in Firestore with expiration (10 minutes)
-      final otpData = {
-        'email': email,
-        'otp': otpCode,
-        'created_at': FieldValue.serverTimestamp(),
-        'expires_at': Timestamp.fromDate(
-          DateTime.now().add(const Duration(minutes: 10)),
-        ),
-        'verified': false,
-      };
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in.');
+      }
 
-      await _firestoreInstance
-          .collection('email_otps')
-          .doc(email)
-          .set(otpData);
+      if (user.emailVerified) {
+        throw Exception('Email is already verified.');
+      }
 
-      // Call the callback with the OTP code
-      // In production, you would send this via email using Cloud Functions
-      // For now, we'll pass it to the callback (you can log it for testing)
-      onCodeGenerated(otpCode);
-      
-      // TODO: Implement email sending via Cloud Functions
-      // The OTP should be sent via email, not exposed to the client
-      // For development/testing, you can check the console or Firestore
+      await user.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleAuthException(e));
     } catch (e) {
-      onError('An error occurred: $e');
+      throw Exception(e.toString());
     }
   }
 
-  // Generate 6-digit OTP
-  String _generateOTP() {
-    final random = DateTime.now().millisecondsSinceEpoch;
-    final otp = (random % 1000000).toString().padLeft(6, '0');
-    return otp;
+  // Check if email is verified
+  Future<bool> checkEmailVerification() async {
+    if (!_isFirebaseInitialized) {
+      return false;
+    }
+
+    try {
+      final user = currentUser;
+      if (user == null) {
+        return false;
+      }
+
+      // Reload user to get latest verification status
+      await user.reload();
+      return user.emailVerified;
+    } catch (e) {
+      return false;
+    }
   }
 
-  // Verify email OTP
-  Future<bool> verifyEmailOTP({
-    required String email,
-    required String otpCode,
+  // Get current user as UserModel
+  Future<UserModel?> getCurrentUserModel() async {
+    if (!_isFirebaseInitialized || currentUser == null) {
+      return null;
+    }
+
+    try {
+      return await getCurrentUserData();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Re-authenticate user (required for sensitive operations like email change)
+  Future<void> reauthenticateUser(String password) async {
+    if (!_isFirebaseInitialized) {
+      throw Exception('Firebase is not configured. Please run: flutterfire configure');
+    }
+
+    try {
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in.');
+      }
+
+      if (user.email == null) {
+        throw Exception('User email is not available.');
+      }
+
+      // Create credential with current email and password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+
+      // Re-authenticate user
+      await user.reauthenticateWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleAuthException(e));
+    } catch (e) {
+      throw Exception('Re-authentication failed: $e');
+    }
+  }
+
+  // Update user profile (nama profile/display name)
+  Future<void> updateProfile({
+    required String displayName,
+    String? email,
+    String? password, // Password required if email is being changed
   }) async {
     if (!_isFirebaseInitialized) {
       throw Exception('Firebase is not configured. Please run: flutterfire configure');
     }
 
     try {
-      // Get OTP document from Firestore
-      DocumentSnapshot doc = await _firestoreInstance
-          .collection('email_otps')
-          .doc(email)
-          .get();
-
-      if (!doc.exists) {
-        throw Exception('OTP not found. Please request a new code.');
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in.');
       }
 
-      final data = doc.data() as Map<String, dynamic>;
-      final storedOTP = data['otp'] as String?;
-      final expiresAt = (data['expires_at'] as Timestamp?)?.toDate();
-      final verified = data['verified'] as bool? ?? false;
+      // Update display name in Firebase Auth
+      await user.updateDisplayName(displayName);
+      await user.updateProfile(displayName: displayName);
+      
+      // Update email if provided and different from current email
+      await user.reload();
 
-      // Check if already verified
-      if (verified) {
-        throw Exception('This OTP has already been used.');
+      // Get current user data to preserve existing fields (like profile_image_url)
+      final currentUserData = await getCurrentUserData();
+      
+      // Update in Firestore
+      Map<String, dynamic> updateData = {
+        'display_name': displayName,
+      };
+      
+      // Preserve profile_image_url if it exists
+      if (currentUserData?.profileImageUrl != null) {
+        updateData['profile_image_url'] = currentUserData!.profileImageUrl;
       }
-
-      // Check if expired
-      if (expiresAt == null || DateTime.now().isAfter(expiresAt)) {
-        throw Exception('OTP has expired. Please request a new code.');
-      }
-
-      // Verify OTP
-      if (storedOTP != otpCode) {
-        throw Exception('Invalid OTP code. Please try again.');
-      }
-
-      // Mark as verified
-      await _firestoreInstance
-          .collection('email_otps')
-          .doc(email)
-          .update({'verified': true});
-
-      // Mark user email as verified in Firebase Auth
-      if (currentUser != null && currentUser!.email == email) {
-        await currentUser!.reload();
-        if (!currentUser!.emailVerified) {
-          // Note: Firebase doesn't have a direct way to mark email as verified
-          // You may need to use email verification link or custom claims
+      
+      if (email != null && email.trim() != user.email) {
+        // Re-authenticate user before changing email (required by Firebase)
+        if (password == null || password.isEmpty) {
+          throw Exception('Password is required to change email address.');
         }
+
+        try {
+          // Re-authenticate user with password
+          await reauthenticateUser(password);
+        } catch (e) {
+          // Re-throw re-authentication errors
+          throw Exception('Re-authentication failed: $e');
+        }
+
+        // Verify email before updating
+        // This method sends verification email to the NEW email address
+        // Email will be updated in Firebase Auth after user verifies the new email
+        try {
+          await user.verifyBeforeUpdateEmail(email.trim());
+          // If successful, verification email is sent to the new email
+          // Don't update email in Firestore yet - wait for user to verify
+          // The email in Firebase Auth will be updated automatically after verification
+        } on FirebaseAuthException catch (e) {
+          // Re-throw with a more user-friendly message
+          throw Exception('Failed to send verification email: ${_handleAuthException(e)}');
+        } catch (e) {
+          // Re-throw any other errors
+          throw Exception('Failed to send verification email: $e');
+        }
+        
+        // Update email in Firestore (will be synced with Firebase Auth after verification)
+        updateData['email'] = email.trim();
+      }
+      
+      await _firestoreInstance
+          .collection('users')
+          .doc(user.uid)
+          .update(updateData);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleAuthException(e));
+    } catch (e) {
+      throw Exception('Failed to update profile: $e');
+    }
+  }
+
+  // Upload profile image to Firebase Storage
+  Future<String> uploadProfileImage(File imageFile) async {
+    if (!_isFirebaseInitialized) {
+      throw Exception('Firebase is not configured. Please run: flutterfire configure');
+    }
+
+    try {
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in.');
       }
 
-      return true;
+      // Create reference to profile image in Storage
+      final ref = _storageInstance
+          .ref()
+          .child('profile_images')
+          .child('${user.uid}.jpg');
+
+      // Upload file dengan metadata
+      await ref.putFile(
+        imageFile,
+        SettableMetadata(
+          contentType: 'image/jpeg',
+          cacheControl: 'max-age=3600',
+        ),
+      );
+
+      // Get download URL
+      final downloadUrl = await ref.getDownloadURL();
+
+      // Update profile_image_url in Firestore
+      await _firestoreInstance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'profile_image_url': downloadUrl,
+      });
+
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      // Handle berbagai error code dari Firebase Storage
+      String errorMessage;
+      switch (e.code) {
+        case 'object-not-found':
+        case 'bucket-not-found':
+          errorMessage = 'Firebase Storage bucket is not configured. Please enable Storage in Firebase Console.';
+          break;
+        case 'unauthorized':
+        case 'permission-denied':
+          errorMessage = 'Storage permission denied. Please check Storage Rules in Firebase Console.';
+          break;
+        case 'unauthenticated':
+          errorMessage = 'User is not authenticated. Please sign in again.';
+          break;
+        case 'quota-exceeded':
+          errorMessage = 'Storage quota exceeded. Please check your Firebase plan.';
+          break;
+        default:
+          errorMessage = 'Failed to upload profile image: ${e.message ?? e.code}';
+      }
+      throw Exception(errorMessage);
     } catch (e) {
-      throw Exception(e.toString());
+      throw Exception('Failed to upload profile image: $e');
     }
   }
 
@@ -289,8 +483,12 @@ class AuthService {
         return 'Too many requests. Please try again later.';
       case 'operation-not-allowed':
         return 'This operation is not allowed.';
+      case 'requires-recent-login':
+        return 'This operation requires recent authentication. Please sign out and sign in again.';
+      case 'invalid-action-code':
+        return 'The verification link is invalid or has expired.';
       default:
-        return 'An authentication error occurred: ${e.message}';
+        return 'An authentication error occurred: ${e.message ?? e.code}';
     }
   }
 

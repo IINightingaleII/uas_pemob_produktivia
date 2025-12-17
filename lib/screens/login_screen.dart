@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/dummy_auth_service.dart';
+import '../services/auth_service.dart';
 import '../utils/page_routes.dart';
+import '../utils/responsive.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
 
@@ -15,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = DummyAuthService();
+  final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _emailError;
@@ -82,54 +83,76 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 45),
-                    
-                    // Sally illustration
-                    Image.asset(
-                      'assets/icons/Sally_login.png',
-                      height: 280,
-                      fit: BoxFit.contain,
-                    ),
-                    
-                    const SizedBox(height: 1),
-                    
-                    // "Hi there!" text
-                    const Text(
-                      'Hi there!',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w500,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.value(
+                  context,
+                  mobile: 32.0,
+                  tablet: Responsive.widthPercent(context, 10),
+                  desktop: Responsive.widthPercent(context, 15),
+                ),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.value(
+                    context,
+                    mobile: double.infinity,
+                    tablet: 600.0,
+                    desktop: 700.0,
+                  ),
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      SizedBox(height: Responsive.spacing(context, 45)),
+                      
+                      // Sally illustration
+                      Image.asset(
+                        'assets/icons/Sally_login.png',
+                        height: Responsive.value(
+                          context,
+                          mobile: 280.0,
+                          tablet: 320.0,
+                          desktop: 360.0,
+                        ),
+                        fit: BoxFit.contain,
                       ),
-                    ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    // "Welcome Back" text
-                    const Text(
-                      'Welcome Back',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
+                      
+                      SizedBox(height: Responsive.spacing(context, 1)),
+                      
+                      // "Hi there!" text
+                      Text(
+                        'Hi there!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: Responsive.fontSize(context, 28),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 40),
-                    
-                    // Email input field
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
+                      
+                      SizedBox(height: Responsive.spacing(context, 8)),
+                      
+                      // "Welcome Back" text
+                      Text(
+                        'Welcome Back',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: Responsive.fontSize(context, 40),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      
+                      SizedBox(height: Responsive.spacing(context, 40)),
+                      
+                      // Email input field
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.1),
@@ -464,6 +487,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     const SizedBox(height: 40),
                   ],
+                ),
+              ),
                 ),
               ),
             ),

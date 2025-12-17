@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // Import file yang di-generate
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/splash_screen_0.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase (optional - app will still run if Firebase isn't configured)
-  // Note: After running 'flutterfire configure', uncomment the lines below
-  // and import: import 'firebase_options.dart';
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
+  // Initialize Firebase dengan options dari firebase_options.dart
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✓ Firebase initialized successfully');
   } catch (e) {
-    // Firebase not configured yet - app will still run but auth won't work
-    debugPrint('Firebase not initialized: $e');
-    debugPrint('To enable authentication, run: flutterfire configure');
+    print('✗ Firebase initialization failed: $e');
+    // App akan tetap jalan, tapi auth tidak akan berfungsi
+  }
+  
+  // Initialize Notification Service
+  try {
+    await NotificationService().initialize();
+    print('✓ Notification service initialized successfully');
+  } catch (e) {
+    print('✗ Notification service initialization failed: $e');
+    // App akan tetap jalan, tapi notifikasi tidak akan berfungsi
   }
   
   runApp(const MyApp());
@@ -34,7 +42,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
-        // Apply Inter font to all text styles
         textTheme: GoogleFonts.interTextTheme(),
       ),
       home: const SplashScreen0(),
