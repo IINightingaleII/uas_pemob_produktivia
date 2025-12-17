@@ -12,7 +12,11 @@
 .swiftpm/
 migrate_working_dir/
 google-services.json
+<<<<<<< HEAD
 
+=======
+firebase_options.dart
+>>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
 # IntelliJ related
 *.iml
 *.ipr
