@@ -1,0 +1,72 @@
+// lib/services/focus_timer_service.dart
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+
+enum TimerStatus { stopped, running, paused, completed }
+
+class FocusTimerService with ChangeNotifier {
+  static const int initialDurationMinutes = 25; // Sesi Pomodoro standar
+  
+  // State
+  int _remainingSeconds = initialDurationMinutes * 60;
+  TimerStatus _status = TimerStatus.stopped;
+  Timer? _timer;
+
+  // Getters
+  int get remainingSeconds => _remainingSeconds;
+  TimerStatus get status => _status;
+
+  // Menghitung rasio waktu yang telah berlalu (untuk animasi jam)
+  double get elapsedRatio {
+    final totalSeconds = initialDurationMinutes * 60;
+    return (totalSeconds - _remainingSeconds) / totalSeconds;
+  }
+
+  // Metode untuk Start Timer
+  void startTimer() {
+    if (_status == TimerStatus.running) return;
+
+    _status = TimerStatus.running;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingSeconds > 0) {
+        _remainingSeconds--;
+      } else {
+        _timer?.cancel();
+        _status = TimerStatus.completed;
+        // Logic notifikasi atau suara selesai bisa ditambahkan di sini
+      }
+      notifyListeners(); // Beri tahu semua widget yang mendengarkan bahwa state berubah
+    });
+    notifyListeners();
+  }
+
+  // Metode untuk Pause Timer
+  void pauseTimer() {
+    if (_status != TimerStatus.running) return;
+    _timer?.cancel();
+    _status = TimerStatus.paused;
+    notifyListeners();
+  }
+
+  // Metode untuk Reset Timer
+  void resetTimer() {
+    _timer?.cancel();
+    _remainingSeconds = initialDurationMinutes * 60;
+    _status = TimerStatus.stopped;
+    notifyListeners();
+  }
+
+  // Format waktu untuk ditampilkan di UI (misalnya 25:00)
+  String get formattedTime {
+    int minutes = _remainingSeconds ~/ 60;
+    int seconds = _remainingSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  // Pastikan timer dibersihkan ketika service dibuang
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+}
