@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'email_verification_screen.dart';
 
 class SplashScreen2 extends StatefulWidget {
   const SplashScreen2({super.key});
@@ -63,7 +64,24 @@ class _SplashScreen2State extends State<SplashScreen2>
     final currentUser = authService.currentUser;
 
     if (currentUser != null) {
-      // User is already logged in, navigate to home
+      // Reload user to get latest email verification status
+      await currentUser.reload();
+      
+      // Check if email is verified
+      if (!currentUser.emailVerified) {
+        // User logged in but email not verified, redirect to verification screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => EmailVerificationScreen(
+              email: currentUser.email ?? '',
+              displayName: currentUser.displayName ?? '',
+            ),
+          ),
+        );
+        return;
+      }
+      
+      // User is logged in and email verified, navigate to home
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );

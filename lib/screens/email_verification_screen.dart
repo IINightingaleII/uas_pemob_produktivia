@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import '../utils/responsive.dart';
 import 'home_screen.dart';
+import 'login_screen.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   final String email;
@@ -22,13 +23,36 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   final _authService = AuthService();
   bool _isLoading = false;
   bool _isResending = false;
+  bool _isCancelling = false;
   String? _errorMessage;
   String? _successMessage;
+  
+  // Cooldown for resend email
+  int _resendCooldown = 0;
+  bool get _canResend => _resendCooldown == 0;
 
   @override
   void initState() {
     super.initState();
     _checkEmailVerification();
+    // Start with cooldown since email was just sent during registration
+    _startResendCooldown();
+  }
+  
+  void _startResendCooldown() {
+    _resendCooldown = 60; // 60 seconds cooldown
+    _tickCooldown();
+  }
+  
+  void _tickCooldown() async {
+    while (_resendCooldown > 0 && mounted) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        setState(() {
+          _resendCooldown--;
+        });
+      }
+    }
   }
 
   Future<void> _checkEmailVerification() async {
@@ -60,6 +84,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   Future<void> _resendVerificationEmail() async {
+    if (!_canResend) return;
+    
     setState(() {
       _isResending = true;
       _errorMessage = null;
@@ -72,11 +98,31 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         _successMessage = 'Verification email sent! Please check your inbox.';
         _isResending = false;
       });
+      // Start cooldown after successful resend
+      _startResendCooldown();
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceFirst('Exception: ', '');
         _isResending = false;
       });
+      // Start cooldown even on error to prevent spam
+      _startResendCooldown();
+    }
+  }
+
+  Future<void> _cancelVerification() async {
+    setState(() {
+      _isCancelling = true;
+    });
+    
+    // Sign out the user
+    await _authService.signOut();
+    
+    if (mounted) {
+      // Navigate to login screen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
     }
   }
 
@@ -264,7 +310,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: _isResending ? null : _resendVerificationEmail,
+                  onPressed: (_isResending || !_canResend) ? null : _resendVerificationEmail,
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(
                       vertical: Responsive.spacing(context, 16),
@@ -272,8 +318,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    side: const BorderSide(
-                      color: Color(0xFF25BDF0),
+                    side: BorderSide(
+                      color: _canResend ? const Color(0xFF25BDF0) : Colors.grey.shade400,
                       width: 1.5,
                     ),
                   ),
@@ -287,11 +333,50 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                           ),
                         )
                       : Text(
-                          'Resend Verification Email',
+                          _canResend 
+                              ? 'Resend Verification Email' 
+                              : 'Resend in ${_resendCooldown}s',
                           style: GoogleFonts.darkerGrotesque(
                             fontSize: Responsive.fontSize(context, 16),
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF25BDF0),
+                            color: _canResend ? const Color(0xFF25BDF0) : Colors.grey.shade500,
+                          ),
+                        ),
+                ),
+              ),
+              SizedBox(height: Responsive.spacing(context, 12)),
+              // Cancel button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _isCancelling ? null : _cancelVerification,
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.spacing(context, 16),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(
+                      color: Colors.red.shade400,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: _isCancelling
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.red.shade400),
+                          ),
+                        )
+                      : Text(
+                          'Cancel & Back to Login',
+                          style: GoogleFonts.darkerGrotesque(
+                            fontSize: Responsive.fontSize(context, 16),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red.shade400,
                           ),
                         ),
                 ),
