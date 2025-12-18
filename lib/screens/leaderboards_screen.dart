@@ -15,7 +15,7 @@ class LeaderboardsScreen extends StatefulWidget {
 class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthService _authService = AuthService();
-  
+
   // State for current user data
   LeaderboardUser? _currentUserLeaderboardData;
   bool _isLoading = true;
@@ -75,13 +75,14 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
   Future<void> _loadCurrentUser() async {
     try {
       final userModel = await _authService.getCurrentUserData();
-      
+
       setState(() {
         _currentUserLeaderboardData = LeaderboardUser(
           name: userModel?.displayName ?? 'You',
           points: 1032, // Mock points as backend doesn't support it yet
-          rank: 112,   // Mock rank
-          imageUrl: userModel?.profileImageUrl ?? 'https://i.pravatar.cc/150?u=99',
+          rank: 112, // Mock rank
+          imageUrl:
+              userModel?.profileImageUrl ?? 'https://i.pravatar.cc/150?u=99',
           isCurrentUser: true,
         );
         _isLoading = false;
@@ -103,9 +104,9 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Combine current user (if loaded) with others for processing if needed, 
+    // Combine current user (if loaded) with others for processing if needed,
     // but here we keep them separate as per UI design (Top 3 vs Rest vs You sticky)
-    
+
     // Sort top 3 for display: 2, 1, 3
     final top3 = _otherUsers.where((u) => u.rank <= 3).toList();
     final displayTop3 = [
@@ -113,7 +114,7 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
       top3.firstWhere((u) => u.rank == 1, orElse: () => top3[0]),
       top3.firstWhere((u) => u.rank == 3, orElse: () => top3[0]),
     ];
-    
+
     final restUsers = _otherUsers.where((u) => u.rank > 3).toList();
 
     return Scaffold(
@@ -136,18 +137,19 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
                       onTap: () {
-                         if (_scaffoldKey.currentState?.hasDrawer ?? false) {
-                           _scaffoldKey.currentState?.openDrawer();
-                         } else {
-                           Navigator.pop(context);
-                         }
+                        if (_scaffoldKey.currentState?.hasDrawer ?? false) {
+                          _scaffoldKey.currentState?.openDrawer();
+                        } else {
+                          Navigator.pop(context);
+                        }
                       },
                       child: Image.asset(
-                        'assets/icons2/Nav.png', 
+                        'assets/icons2/Nav.png',
                         width: Responsive.iconSize(context, 24),
                         height: Responsive.iconSize(context, 24),
                         color: const Color(0xFF9183DE),
-                        errorBuilder: (c, o, s) => const Icon(Icons.menu, color: Color(0xFF9183DE)),
+                        errorBuilder: (c, o, s) =>
+                            const Icon(Icons.menu, color: Color(0xFF9183DE)),
                       ),
                     ),
                   ),
@@ -162,7 +164,7 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
                 ],
               ),
             ),
-            
+
             if (_isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
             else
@@ -174,29 +176,40 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
                       const SizedBox(height: 20),
                       // Top 3 Section
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: Responsive.paddingHorizontal(context)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.paddingHorizontal(context),
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           crossAxisAlignment: CrossAxisAlignment.end,
-                          children: displayTop3.map((user) => _buildTop3Item(context, user)).toList(),
+                          children: displayTop3
+                              .map((user) => _buildTop3Item(context, user))
+                              .toList(),
                         ),
                       ),
                       const SizedBox(height: 30),
-                      
+
                       // List Section Container
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: Responsive.paddingHorizontal(context)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.paddingHorizontal(context),
+                        ),
                         child: Column(
                           children: [
                             // "You" Item (Sticky-like look)
                             if (_currentUserLeaderboardData != null)
-                              _buildListItem(context, _currentUserLeaderboardData!),
+                              _buildListItem(
+                                context,
+                                _currentUserLeaderboardData!,
+                              ),
                             const SizedBox(height: 12),
                             // Rest of users
-                            ...restUsers.map((user) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _buildListItem(context, user),
-                            )),
+                            ...restUsers.map(
+                              (user) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildListItem(context, user),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -213,12 +226,16 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
   Widget _buildTop3Item(BuildContext context, LeaderboardUser user) {
     final isFirst = user.rank == 1;
     final double avatarSize = isFirst ? 80 : 60;
-    
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (isFirst) ...[
-          const Icon(Icons.emoji_events, color: Color(0xFFEADB5E), size: 30), // Crown
+          const Icon(
+            Icons.emoji_events,
+            color: Color(0xFFEADB5E),
+            size: 30,
+          ), // Crown
           const SizedBox(height: 4),
         ],
         Stack(
@@ -227,7 +244,9 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: isFirst ? Border.all(color: const Color(0xFF9183DE), width: 3) : null,
+                border: isFirst
+                    ? Border.all(color: const Color(0xFF9183DE), width: 3)
+                    : null,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -264,12 +283,13 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
         const SizedBox(height: 16),
         Text(
-          user.name.split(' ').first + (user.name.split(' ').length > 1 ? '...' : ''), 
+          user.name.split(' ').first +
+              (user.name.split(' ').length > 1 ? '...' : ''),
           style: GoogleFonts.jost(
             fontWeight: FontWeight.w600,
             fontSize: isFirst ? 16 : 14,
@@ -279,10 +299,7 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
         ),
         Text(
           '${user.points} pts',
-          style: GoogleFonts.jost(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
+          style: GoogleFonts.jost(fontSize: 12, color: Colors.grey),
         ),
       ],
     );
@@ -315,13 +332,15 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            
+
           CircleAvatar(
             radius: 20,
             backgroundImage: NetworkImage(user.imageUrl),
             backgroundColor: Colors.grey.shade200,
             onBackgroundImageError: (_, __) {},
-            child: user.imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.grey) : null,
+            child: user.imageUrl.isEmpty
+                ? const Icon(Icons.person, color: Colors.grey)
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -333,7 +352,9 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
                   style: GoogleFonts.jost(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
-                    color: user.isCurrentUser ? const Color(0xFF2E2C4F) : Colors.black87,
+                    color: user.isCurrentUser
+                        ? const Color(0xFF2E2C4F)
+                        : Colors.black87,
                   ),
                 ),
                 Text(
@@ -350,9 +371,9 @@ class _LeaderboardsScreenState extends State<LeaderboardsScreen> {
           Row(
             children: [
               Icon(
-                Icons.emoji_events_outlined, 
-                size: 20, 
-                color: const Color(0xFF9183DE).withOpacity(0.5)
+                Icons.emoji_events_outlined,
+                size: 20,
+                color: const Color(0xFF9183DE).withOpacity(0.5),
               ),
               const SizedBox(width: 4),
               Text(
