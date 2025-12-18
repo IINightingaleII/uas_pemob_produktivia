@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/dummy_auth_service.dart';
+import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -58,11 +58,12 @@ class _SplashScreen2State extends State<SplashScreen2>
   }
 
   Future<void> _navigateToNext() async {
-    // Check if user is already logged in
-    final authService = DummyAuthService();
+    // Check if user is already logged in using Firebase Auth
+    final authService = AuthService();
     final currentUser = authService.currentUser;
 
     if (currentUser != null) {
+      // User is already logged in, navigate to home
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
