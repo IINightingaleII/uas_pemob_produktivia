@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/edit_profile_screen.dart';
 import '../screens/focus_mode_screen.dart';
-import '../screens/history_screen.dart';
 import '../screens/leaderboards_screen.dart';
 import '../screens/home_screen.dart';
 import '../services/auth_service.dart';
@@ -128,20 +127,6 @@ class HomeDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const FocusModeScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildDrawerItem(
-                  context,
-                  icon: 'assets/icons2/history.png',
-                  title: 'History',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HistoryScreen(),
                       ),
                     );
                   },

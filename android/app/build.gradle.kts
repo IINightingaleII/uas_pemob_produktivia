@@ -39,10 +39,29 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Disable native library stripping in debug builds to avoid OOM
+            packagingOptions {
+                jniLibs {
+                    useLegacyPackaging = true
+                }
+            }
+        }
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            
+            // Disable R8/ProGuard temporarily to avoid JVM crashes
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+    
+    // Packaging options to avoid memory issues
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
         }
     }
 }
