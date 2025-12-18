@@ -2,17 +2,28 @@ import 'package:flutter/material.dart';
 import '../widgets/real_time_clock.dart';
 import '../widgets/music_player_widget.dart';
 import '../models/task_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FocusModeScreen extends StatelessWidget {
-  const FocusModeScreen({super.key});
+  final TaskModel? task;
 
-  static const Color primaryColor = Color(0xFF5A189A);
-  static const Color accentColor = Color(0xFFF7B538);
+  const FocusModeScreen({super.key, this.task});
+
+  static const Color defaultPrimaryColor = Color(0xFF5A189A);
+  static const Color defaultAccentColor = Color(0xFFF7B538);
 
   @override
   Widget build(BuildContext context) {
+    // Use task color if available, otherwise default
+    // Note: TaskModel.color is an int (0xFF...), we might need to process it
+    final Color backgroundColor = task != null 
+        ? Color(task!.color).withOpacity(0.9) // Slightly darker for background
+        : defaultPrimaryColor;
+        
+    final Color accentColor = defaultAccentColor;
+
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -20,9 +31,9 @@ class FocusModeScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Current Task',
-          style: TextStyle(color: Colors.white),
+          style: GoogleFonts.jost(color: Colors.white),
         ),
       ),
       body: SingleChildScrollView(
@@ -30,36 +41,39 @@ class FocusModeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTaskHeader(),
+            _buildTaskHeader(accentColor),
             const SizedBox(height: 40),
 
             /// ⏰ JAM ANALOG REAL TIME
-            const Center(
+            Center(
               child: RealTimeClock(
-                tasks: [], // ✅ FIX: sesuai constructor
+                tasks: task != null ? [task!] : [], 
               ),
             ),
 
             const SizedBox(height: 40),
             _buildDescription(),
             const SizedBox(height: 20),
-            const MusicPlayerWidget(accentColor: accentColor),
+            MusicPlayerWidget(accentColor: accentColor),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTaskHeader() {
+  Widget _buildTaskHeader(Color accentColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Study',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        Expanded(
+          child: Text(
+            task?.title ?? 'General Focus',
+            style: GoogleFonts.jost(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         StreamBuilder<DateTime>(
@@ -74,7 +88,7 @@ class FocusModeScreen extends StatelessWidget {
 
             return Text(
               time,
-              style: const TextStyle(
+              style: GoogleFonts.jost(
                 color: accentColor,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -87,17 +101,17 @@ class FocusModeScreen extends StatelessWidget {
   }
 
   Widget _buildDescription() {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Handpicked by Produktivia Team.',
-          style: TextStyle(color: Colors.white70, fontSize: 16),
+          style: GoogleFonts.jost(color: Colors.white70, fontSize: 16),
         ),
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         Text(
           'Just sit back, relax and do your task.',
-          style: TextStyle(
+          style: GoogleFonts.jost(
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,

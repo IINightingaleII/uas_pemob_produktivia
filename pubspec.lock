@@ -248,56 +248,31 @@ packages:
       sha256: a631bbfbfa26963d68046aed949df80b228964020e9155b086eff94f462bbf1f
       url: "https://pub.dev"
     source: hosted
-<<<<<<< HEAD
-    version: "3.3.0"
-=======
     version: "3.3.1"
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
   firebase_storage:
     dependency: "direct main"
     description:
       name: firebase_storage
-<<<<<<< HEAD
-      sha256: "3438f38590186010ce76ece683ebf3b842cd637f31f83a13620917d7438a58fd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "13.0.4"
-=======
       sha256: "5321a88518d992d03f8482bc48ede9cfb315b465bd59f1587468bc2f4a809d08"
       url: "https://pub.dev"
     source: hosted
     version: "13.0.5"
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
   firebase_storage_platform_interface:
     dependency: transitive
     description:
       name: firebase_storage_platform_interface
-<<<<<<< HEAD
-      sha256: "5d56021a9d30f7ca89559c96cc4c7250ce6ff8881382ff7238fde64a1f449e39"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.15"
-=======
       sha256: dbcd5363a6b2edf2d1238fc22f10f4a39f0ea991a432b4fc43871ea31647cf5a
       url: "https://pub.dev"
     source: hosted
     version: "5.2.16"
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
   firebase_storage_web:
     dependency: transitive
     description:
       name: firebase_storage_web
-<<<<<<< HEAD
-      sha256: a06775d1df6dd90f5fa3fe9e221b988dcbc221e73a0f8951136536e6d5e548e6
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.11.0"
-=======
       sha256: "141ada1185fbd4a982d7cdd4486d1e42fe616db6024e22f7fcb3e9df388be8b4"
       url: "https://pub.dev"
     source: hosted
     version: "3.11.1"
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
   flutter:
     dependency: "direct main"
     description: flutter
@@ -408,11 +383,7 @@ packages:
       sha256: "51555e36056541237b15b57afc31a0f53d4f9aefd9bd00873a6dc0090e54e332"
       url: "https://pub.dev"
     source: hosted
-<<<<<<< HEAD
-    version: "4.5.4"
-=======
     version: "4.6.0"
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
   image_picker:
     dependency: "direct main"
     description:
@@ -548,10 +519,7 @@ packages:
       sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
-<<<<<<< HEAD
     version: "1.17.0"
-=======
-    version: "1.16.0"
   mime:
     dependency: transitive
     description:
@@ -560,10 +528,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-<<<<<<< HEAD
->>>>>>> b7465e39073329ceccde91b4897fedb59983fd2d
-=======
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
   nested:
     dependency: transitive
     description:
@@ -720,10 +684,7 @@ packages:
       sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
       url: "https://pub.dev"
     source: hosted
-<<<<<<< HEAD
     version: "0.7.7"
-=======
-    version: "0.7.6"
   timezone:
     dependency: "direct main"
     description:
@@ -732,10 +693,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.4"
-<<<<<<< HEAD
->>>>>>> b7465e39073329ceccde91b4897fedb59983fd2d
-=======
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
   typed_data:
     dependency: transitive
     description:

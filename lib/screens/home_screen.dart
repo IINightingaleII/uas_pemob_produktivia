@@ -13,6 +13,7 @@ import '../widgets/home_header.dart';
 import '../widgets/home_drawer.dart';
 import '../widgets/date_calendar_widget.dart';
 import '../utils/responsive.dart';
+import 'focus_mode_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -287,6 +288,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       task: task,
                       onToggle: () => _toggleTask(taskIndex),
                       onEdit: () => _showEditTaskDialog(taskIndex),
+                      onFocus: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FocusModeScreen(task: task),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

@@ -298,12 +298,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                             ),
                             onPressed: () {
                               setState(() {
-<<<<<<< HEAD
                                 _isConfirmPasswordVisible =
                                     !_isConfirmPasswordVisible;
-=======
-                                _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4
                               });
                             },
                           ),
@@ -385,7 +381,3 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> e57c3f52414c057d97538d9bcde33e710ad35ab4

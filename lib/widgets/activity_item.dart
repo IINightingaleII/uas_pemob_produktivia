@@ -6,12 +6,14 @@ class ActivityItem extends StatelessWidget {
   final TaskModel task;
   final VoidCallback onToggle;
   final VoidCallback? onEdit;
+  final VoidCallback? onFocus;
 
   const ActivityItem({
     super.key,
     required this.task,
     required this.onToggle,
     this.onEdit,
+    this.onFocus,
   });
 
   @override
@@ -49,6 +51,7 @@ class ActivityItem extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
+                onTap: onFocus,
                 onDoubleTap: onEdit,
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
